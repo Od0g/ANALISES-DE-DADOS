@@ -4,7 +4,7 @@ from dash import Dash, dcc, html, Input, Output, State
 from dash import dash_table
 
 # Carregar os dados do Excel
-df = pd.read_excel("/workspaces/ANALISES-DE-DADOS/Analise de PCM/2025/02/dados.xlsx", engine='openpyxl')
+df = pd.read_excel("/workspaces/ANALISES-DE-DADOS/Analise de PCM/2025/02/Dados/Problema B90/dados.xlsx", engine='openpyxl')
 
 # Converter datas para formato datetime
 df['Data Início'] = pd.to_datetime(df['Data Início'], format='%d/%m/%Y %H:%M')
