@@ -10,16 +10,40 @@ data_path = "/workspaces/ANALISES-DE-DADOS/Analise de PCM/20250320/projeto_pcm/d
 # Listar arquivos CSV na pasta
 arquivos = [f for f in os.listdir(data_path) if f.endswith('.csv')]
 
-# Carregar e unir os arquivos CSV
-df_list = [pd.read_csv(os.path.join(data_path, f), encoding='utf-8') for f in arquivos]
+# Lista para armazenar os DataFrames
+df_list = []
+
+# Carregar os arquivos CSV com tratamento de erro
+for f in arquivos:
+    file_path = os.path.join(data_path, f)
+    
+    try:
+        df_temp = pd.read_csv(file_path, encoding='utf-8', on_bad_lines="skip")  # Ignora linhas com erro
+        print(f"Colunas de {f}: {df_temp.columns.tolist()}")  # Exibe as colunas do arquivo
+        
+        # Adiciona apenas se tiver a coluna 'DATA_ABERTURA'
+        if 'DATA_ABERTURA' in df_temp.columns:
+            df_list.append(df_temp)
+        else:
+            print(f"Aviso: '{f}' não contém a coluna 'DATA_ABERTURA' e será ignorado.")
+    
+    except Exception as e:
+        print(f"Erro ao carregar {f}: {e}")
+
+# Verifica se há arquivos carregados corretamente
+if not df_list:
+    raise ValueError("Nenhum arquivo foi carregado corretamente.")
+
+# Unir todos os DataFrames
 df = pd.concat(df_list, ignore_index=True)
 
 # Converter colunas de data para datetime
 df['DATA_ABERTURA'] = pd.to_datetime(df['DATA_ABERTURA'], errors='coerce')
 df['DATA_FECHAMENTO'] = pd.to_datetime(df['DATA_FECHAMENTO'], errors='coerce')
 
-# Remover valores negativos e inconsistentes
-df = df[(df['DATA_FECHAMENTO'] >= df['DATA_ABERTURA'])]
+# Remover valores inconsistentes
+df = df.dropna(subset=['DATA_ABERTURA', 'DATA_FECHAMENTO'])  # Remove linhas sem datas
+df = df[df['DATA_FECHAMENTO'] >= df['DATA_ABERTURA']]  # Remove registros invertidos
 
 # Criar coluna de tempo de atendimento
 df['TEMPO_ATENDIMENTO'] = (df['DATA_FECHAMENTO'] - df['DATA_ABERTURA']).dt.total_seconds() / 3600  # Em horas
@@ -34,10 +58,9 @@ df['SEMESTRE'] = df['DATA_ABERTURA'].dt.to_period('2Q')
 df['ANO'] = df['DATA_ABERTURA'].dt.to_period('Y')
 
 # Agrupar por setor e calcular estatísticas
-df_setor = df.groupby('SETOR')['TEMPO_ATENDIMENTO'].describe()
-
-# Identificar equipamentos com mais falhas
-df_equipamentos = df['COD_EQUIPAMENTO'].value_counts()
+if 'SETOR' in df.columns:
+    df_setor = df.groupby('SETOR')['TEMPO_ATENDIMENTO'].describe()
+    df_setor.to_csv("/workspaces/ANALISES-DE-DADOS/Analise de PCM/20250320/projeto_pcm/reports/relatorio.csv")
 
 # Criar gráficos
 plt.figure(figsize=(12, 6))
@@ -51,8 +74,5 @@ df['MES'].value_counts().sort_index().plot(kind='bar', color='blue')
 plt.title("Número de OS por Mês")
 plt.show()
 
-# Salvar relatório em CSV
-df_setor.to_csv("/workspaces/ANALISES-DE-DADOS/Analise de PCM/20250320/projeto_pcm/reports/relatorio.csv")
+df.head(), df.tail()
 
-df.head()
-df.tail()
