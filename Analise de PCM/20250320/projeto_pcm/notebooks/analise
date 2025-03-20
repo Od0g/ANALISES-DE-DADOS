@@ -1,0 +1,58 @@
+import pandas as pd
+import os
+import matplotlib.pyplot as plt
+import seaborn as sns
+from datetime import datetime
+
+# Definir caminho da pasta dos arquivos
+data_path = "/workspaces/ANALISES-DE-DADOS/Analise de PCM/20250320/projeto_pcm/data/raw/"
+
+# Listar arquivos CSV na pasta
+arquivos = [f for f in os.listdir(data_path) if f.endswith('.csv')]
+
+# Carregar e unir os arquivos CSV
+df_list = [pd.read_csv(os.path.join(data_path, f), encoding='utf-8') for f in arquivos]
+df = pd.concat(df_list, ignore_index=True)
+
+# Converter colunas de data para datetime
+df['DATA_ABERTURA'] = pd.to_datetime(df['DATA_ABERTURA'], errors='coerce')
+df['DATA_FECHAMENTO'] = pd.to_datetime(df['DATA_FECHAMENTO'], errors='coerce')
+
+# Remover valores negativos e inconsistentes
+df = df[(df['DATA_FECHAMENTO'] >= df['DATA_ABERTURA'])]
+
+# Criar coluna de tempo de atendimento
+df['TEMPO_ATENDIMENTO'] = (df['DATA_FECHAMENTO'] - df['DATA_ABERTURA']).dt.total_seconds() / 3600  # Em horas
+
+# Estatísticas gerais
+tempo_atendimento_stats = df['TEMPO_ATENDIMENTO'].describe()
+
+# Análise por período
+df['MES'] = df['DATA_ABERTURA'].dt.to_period('M')
+df['TRIMESTRE'] = df['DATA_ABERTURA'].dt.to_period('Q')
+df['SEMESTRE'] = df['DATA_ABERTURA'].dt.to_period('2Q')
+df['ANO'] = df['DATA_ABERTURA'].dt.to_period('Y')
+
+# Agrupar por setor e calcular estatísticas
+df_setor = df.groupby('SETOR')['TEMPO_ATENDIMENTO'].describe()
+
+# Identificar equipamentos com mais falhas
+df_equipamentos = df['COD_EQUIPAMENTO'].value_counts()
+
+# Criar gráficos
+plt.figure(figsize=(12, 6))
+sns.boxplot(x='SETOR', y='TEMPO_ATENDIMENTO', data=df)
+plt.xticks(rotation=45)
+plt.title("Tempo de Atendimento por Setor")
+plt.show()
+
+plt.figure(figsize=(12, 6))
+df['MES'].value_counts().sort_index().plot(kind='bar', color='blue')
+plt.title("Número de OS por Mês")
+plt.show()
+
+# Salvar relatório em CSV
+df_setor.to_csv("/workspaces/ANALISES-DE-DADOS/Analise de PCM/20250320/projeto_pcm/reports/relatorio.csv")
+
+df.head()
+df.tail()

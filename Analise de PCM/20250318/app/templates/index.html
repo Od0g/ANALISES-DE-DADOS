@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard PCM</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h2>Tempo Médio de Fechamento</h2>
+    <p id="tempo-medio"></p>
+
+    <h2>Setores Mais Afetados</h2>
+    <canvas id="setoresChart"></canvas>
+
+    <h2>Correção x Prevenção</h2>
+    <canvas id="manutencaoChart"></canvas>
+
+    <script>
+        fetch("/dados")
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("tempo-medio").innerText = "Média: " + data.tempo_medio.toFixed(2) + " horas";
+
+                // Setores mais afetados
+                const setoresCtx = document.getElementById('setoresChart').getContext('2d');
+                new Chart(setoresCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(data.setores),
+                        datasets: [{
+                            label: 'Número de OS',
+                            data: Object.values(data.setores),
+                            backgroundColor: 'blue'
+                        }]
+                    }
+                });
+
+                // Correção x Prevenção
+                const manutencaoCtx = document.getElementById('manutencaoChart').getContext('2d');
+                new Chart(manutencaoCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(data.tipos_manutencao),
+                        datasets: [{
+                            label: 'Tipos de Manutenção',
+                            data: Object.values(data.tipos_manutencao),
+                            backgroundColor: ['red', 'green']
+                        }]
+                    }
+                });
+            });
+    </script>
+</body>
+</html>
