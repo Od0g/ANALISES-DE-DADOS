@@ -7,11 +7,8 @@ Este repositório reúne projetos de análise de dados desenvolvidos com o objet
 ## Estrutura dos Projetos
 
 - **Analise de PCM**: Análise de Planejamento e Controle de Manutenção utilizando dados históricos para otimização de processos.
-
 - **Banco_De_Dados**: Implementação e manipulação de bancos de dados relacionais para armazenamento e recuperação eficiente de informações.
-
 - **FirstAPI**:Desenvolvimento de uma API básica para integração de sistemas e acesso a dados.
-
 - **Monitoramento de Desempenho Esportivo**: Análise de dados de desempenho esportivo para melhoria de treinamentos e estratégias(DADOS FICTCIOS).
 
 ## Como Utilizar
@@ -40,5 +37,4 @@ Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou enviar
 
 ## Licença
 
-Este repositório está licenciado sob a LICENSE
-
+Este repositório está licenciado sob a  ******LICENSE** ****
